@@ -6,6 +6,7 @@
 #include <iterator>
 #include <type_traits>
 #include "bits.hpp"
+#include <iostream>
 
 namespace morton {
   // Forward declare the iterator template
@@ -91,15 +92,20 @@ namespace morton {
     //        just-past-the-last elements in the matrix
     // Mutable iterators
     iterator begin() {
+      return iterator(_data.get(), 0, _rank);
     }
+
     iterator end() {
+      return iterator(_data.get(), _rank*_rank, _rank);
     }
 
     // TODO: as above, but const
     // Const iterators
     const_iterator begin() const {
+      return const_iterator(_data.get(), 0, _rank);
     }
     const_iterator end() const {
+      return const_iterator(_data.get(), _rank*_rank, _rank);
     }
 
   private:
@@ -129,7 +135,7 @@ namespace morton {
   public:
     // TODO
     // Default constructor
-    matrix_iterator();
+    matrix_iterator() = delete;
 
     // Note: must provide copy c'tor, copy assign
     // TODO: Decide if the default copy/move/destruct behaviour is
@@ -138,46 +144,75 @@ namespace morton {
     // TODO
     // Get the x/y coordinates of the current element
     uint32_t x() const {
+      int64_t z = _p - _start;
+      assert(z >= 0);
+      uint32_t x, y;
+      decode(z, x, y);
+      return x;
     }
     uint32_t y() const {
+      // get z-index (i.e. offset), then extract y
+      int64_t z = _p - _start;
+      assert(z >= 0);
+      uint32_t x, y;
+      decode(z, x, y);
+      return y;
     }
     
     // Comparison operators. Note these are inline non-member friend
     // functions.
     friend bool operator==(const matrix_iterator& a, const matrix_iterator& b) {
       // TODO
+      return (a._p == b._p);
     }
     // Note this can be done in terms of the above
     friend bool operator!=(const matrix_iterator& a, const matrix_iterator& b) {
       return !(a == b);
+      // return false;
     }
 
     // Dereference operator
     T& operator*() {
       // TODO
+      return *_p;
     }
 
     // Preincrement operator
     matrix_iterator& operator++() {
       // TODO
+      if (_p != _end) {
+        _p++;
+      }
+      return *this;
     }
     // TODO
     // Predecrement operator
     matrix_iterator& operator--() {
       // TODO
+      if (_p != _start) {
+        _p--;
+      }
+      return *this;
     }      
     
   private:
     // TODO: declare and define appropriate constructor(s) to create
     //       iterators pointing into a matrix's data.
-    // matrix_iterator(...);
+    matrix_iterator(T* data, uint64_t z, uint32_t rank) : _start(data) {
+      assert(z <= rank*rank);
+      assert(_start != nullptr);
+      _p = _start + z;
+      _end = _start + ((uint64_t) rank * (uint64_t) rank);
+    }
 
     // Other constructors should probably not be publicly visible, so
     // we need to allow matrix<T> access.
     friend matrix<typename std::remove_const<T>::type>;
 
     // TODO: Define data members as needed
-
+    T* _start = nullptr; // The start of data     
+    T* _p = nullptr;     // Where we currently point
+    T* _end = nullptr;   // One past the last element
   };
 
 }

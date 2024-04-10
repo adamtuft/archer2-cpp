@@ -1,6 +1,8 @@
 #ifndef MORTON_MATRIX_HPP
 #define MORTON_MATRIX_HPP
 
+#include <memory>
+#include <iostream>
 #include <cassert>
 #include "bits.hpp"
 
@@ -21,11 +23,11 @@ namespace morton {
   class matrix {
   public:
     // TODO - anything needed?
-    matrix() : _rank(0) {
+    matrix() : _rank(0), _data(nullptr) {
     }
 
     // TODO - allocate some memory
-    matrix(uint32_t r)
+    matrix(uint32_t r) : _rank(r), _data(new T[r*r])
     {
       // Check it's a power of 2. Could consider throwing an
       // exception, but these are not in the syllabus!
@@ -38,12 +40,12 @@ namespace morton {
 
     // Moving is allowed
     // TODO - will the default implementations be OK?
-    matrix(matrix&& other) noexcept;
-    matrix& operator=(matrix&& other) noexcept;
+    matrix(matrix&& other) noexcept = default;
+    matrix& operator=(matrix&& other) noexcept = default;
 
     // Destructor
     // TODO - will the default implemenation be OK?
-    ~matrix();
+    ~matrix() = default;
 
     // Create a new matrix with contents copied from this one
     matrix duplicate() const {
@@ -62,23 +64,31 @@ namespace morton {
 
     // TODO
     // Const element access
-    const T& operator()(uint32_t i, uint32_t j) const;
+    const T& operator()(uint32_t i, uint32_t j) const {
+      return _data[encode(i, j)];
+    }
 
     // TODO
     // Mutable element access
-    T& operator()(uint32_t i, uint32_t j);
+    T& operator()(uint32_t i, uint32_t j) {
+      return _data[encode(i, j)];
+    }
 
     // TODO
     // Raw data access (const and mutable versions)
-    const T* data() const;
-    T* data();
+    const T* data() const {
+      return _data.get();
+    }
 
-    
+    T* data() {
+      return _data.get();
+    }
+
   private:
     // rank of matrix
     uint32_t _rank;
     // Data storage
-    // TODO - choose how to store data and manage that memory
+    std::unique_ptr<T[]> _data;
   };
   
 }
