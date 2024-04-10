@@ -78,7 +78,7 @@ TEST_CASE("Complex number can be added and subtracted") {
 
   CheckZminusZeq0(1);
   CheckZminusZeq0(0);
-  CheckZminusZeq0(-1);
+  CheckZminusZeq0(-1); // ?
   CheckZminusZeq0(Complex{1,2});
   CheckZminusZeq0(Complex{-42, 1e-3});
 }

@@ -8,13 +8,15 @@ public:
   Complex() = default;
   // Construct purely real complex
   // Construct from real and imaginary parts
+  Complex(double re) : re(re) {};
+  Complex(double re, double im) : re(re), im(im) {} ;
 
   // Access components
-  double real() const;
-  double imag() const;
+  double const& real() const;
+  double const& imag() const;
 
   // Compute the complex conjugate
-  Complex conj();
+  Complex conj() const;
 
   // Compute the magnitude and squared magnitude
   double norm() const;

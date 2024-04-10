@@ -74,4 +74,16 @@ TEST_CASE("Map adding") {
     REQUIRE(wlens.find("test") != wlens.end());
   }
 
+  SECTION( "Insert another word") {
+    bool did_insert = AddWord(wlens, "win");
+    REQUIRE(did_insert);
+    REQUIRE(wlens.size() == 1);
+    REQUIRE(wlens.find("win") != wlens.end());
+
+    did_insert = AddWord(wlens, "boo", true);
+    REQUIRE(did_insert);
+    REQUIRE(wlens.size() == 2);
+    REQUIRE(wlens.find("boo") != wlens.end());
+  }
+
 }
