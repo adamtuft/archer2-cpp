@@ -1,7 +1,7 @@
 template: titleslide
 # Templates
-## James Richings
-## j.richings@epcc.ed.ac.uk
+## Nathan Mannall
+## n.mannall@epcc.ed.ac.uk
 
 ???
 
@@ -151,11 +151,49 @@ public:
 ---
 # Where to put your implementation?
 
+```C++
+// main.cpp
+
+#include <iostream>
+
+template <typename T>
+T addOne(T x); // function template forward declaration
+
+int main()
+{
+    std::cout << addOne(1) << '\n';
+    std::cout << addOne(2.3) << '\n';
+
+    return 0;
+}
+```
+
+```C++
+// add.cpp
+
+template <typename T>
+T addOne(T x) // function template definition
+{
+    return x + 1;
+}
+```
+
+???
+`main.cpp` will compile - it can see the forward declartion and trusts the implementaitons will be compiled.
+
+`add.cpp` will compile, but not it will not instatiate anything as it does
+not see any uses of the `addOne` function. Therefore you will get a linker error.
+
+We fix this by putting all the template code in a header file. Each `.cpp` file
+will see the template definition and instatiate any functions as needed.
+
+---
+# Where to put your implementation?
+
 Templates are *not* executable code - they tell the compiler how to
 create it.
 
-So the definition must be available in the translation unit of the user of your template -
-i.e. typically in a header file.
+So the definition must be available in the translation unit of the user of your template - i.e. typically in a header file.
 
 You can define the functions in place like:
 
@@ -181,6 +219,9 @@ my_array<T>::my_array(unsigned n) : _size(n) {
 Point out the uglier syntax of the second form but on the other hand
 the class definition shown earlier is cleaner with only the member
 function declarations
+
+But surely this process can cause the same function to be defined in
+multiple places? (Next slide)
 
 ---
 # Templates and the One Definition Rule
@@ -298,3 +339,31 @@ copy add a reference `&`
 
 The `auto` keyword follows the same rules as template argument
 deduction
+
+---
+template: titleslide
+# Exercise
+
+---
+# Templates Exercise
+
+In your clone of this repository, find the `5-templates` exercise. It contains two sub-directories `part1` and `part2`.
+
+**Part 1**
+
+1. Have a look at `sum.cpp`. Do you think it will compile? If so, what will the output be?
+2. Compile and run the provided code with `make && ./sum`. Is the result what you expected? Can you explain what is happening at line 12?
+```C++
+11    sum(3, 4);
+12    sum(3.2, 5.1);
+13    // sum("Hello", "World!");
+```
+3. Uncomment line 13. What happens when you try to compile?
+4. Change the `sum()` function to use type templating. How does this change the output?
+
+
+**Part 2**
+
+`complex.cpp` contains a working version of the complex number class. Change the class declaration and definitions to use type templating.
+
+As before, `test.cpp` holds some basic unit tests and you can compile with `make`.

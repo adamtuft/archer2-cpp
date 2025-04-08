@@ -1,8 +1,8 @@
 template: titleslide
 
 # A brief introduction to C++
-## James Richings, EPCC
-## j.richings@epcc.ed.ac.uk
+## Nathan Mannall, EPCC
+## n.mannall@epcc.ed.ac.uk
 
 ---
 
@@ -12,7 +12,7 @@ template: titleslide
 ---
 # Assumptions
 
-- You are a decent programmer in another language
+- You have some experience in another language
 
 - You know how to use the shell
 
@@ -123,10 +123,10 @@ C++ is a work in progress.
 
 Every three years there is a new update to the International Standard
 
-Latest one, C++20, still not fully implemented by an compiler. Major
+C++20 is only fully supported by MSVC (although GCC is nearly there). Major
 new features are ranges, coroutines, concepts, and modules
 
-C++23 is still in draft (N4950). Major features likely to include
+Latest one, C++23 has been released. Major features include
 networking, string formatting, executors, and consolidation of new
 C++20 features
 
@@ -136,7 +136,7 @@ C++20 features
     (2nd Ed.). Assumes very little but it's long
 
 -   Bjarne Stroustrup, "A Tour of C++". Assumes you're an experience
-    programmer and is quite brief - recently updated for C++17
+    programmer and is quite brief - targets C++17
 
 -   Best online *reference* is <http://en.cppreference.com/>
     (comes in other human languages too!)
@@ -164,7 +164,7 @@ name: hello
 ```C++
 #include <iostream>
 
-int main(void) { 
+int main() {
   std::cout << "Hello, world!" << std::endl;
   return 0;
 }
@@ -174,7 +174,7 @@ int main(void) {
 template: hello
 
 ```
-$ g++ --std=c++11 hello.cpp -o hello
+$ g++ --std=c++17 hello.cpp -o hello
 $ ./hello 
 Hello, world!
 ```
@@ -201,7 +201,7 @@ template: hello
 
 - The `return 0` statement indicates to the OS that no error occured.
 
-- (You can also get the command line arguments but `void` here means we
+- (You can also get the command line arguments but the empty brackets here means we
   aren't using them).
 
 ???
@@ -246,7 +246,7 @@ template: titleslide
 You can use your laptop or ARCHER2
 
 __Your machine__ : you need a C++ compiler that supports at least
-C++11. If you use Windows and MSVC we may not be able to help
+C++11 (ideally C++17). If you use Windows and MSVC we may not be able to help
 much... Sorry!
 
 __ARCHER2__: You have log in details.
@@ -292,7 +292,7 @@ emacs hello.cpp
 Compile the program:
 
 ```
-g++ --std=c++11 hello.cpp -o hello
+g++ --std=c++17 hello.cpp -o hello
 ```
 
 No output means success!
@@ -385,9 +385,9 @@ template: titleslide
 
 | Type        | Description |
 |-------------|-------------|
-| `void`      | Nothing - used to indicate a function takes and/or returns no value.|
+| `void`      | Nothing - used to indicate a function returns no value.|
 | `bool`      | `true` or `false` |
-| `int`       | Standard *signed* integer for your machine. *At least* 16bits. *Usually* 32 bits.|
+| `int`       | Standard *signed* integer for your machine. *At least* 16 bits. *Usually* 32 bits.|
 | `double`    | Double-precision floating point. *Usually* an IEEE 754 64 bit number.|
 | `std::byte` | Raw untyped memory |
 
@@ -415,11 +415,11 @@ You have to `#include <string>` to use it which includes the "header
 file" that contains all the information the compiler needs to let you
 use it.
 
-```
+```C++
 #include <iostream>
 #include <string>
 
-int main(void) {
+int main() {
   std::string message = "Hello, world";
   std::cout << message << std::endl;
   return 0;
@@ -429,11 +429,114 @@ int main(void) {
 ???
 Character encoding in the standard library is a bit of a mess.
 
-Partially fixed in C++20
+Partially fixed in C++20 and further in C++23
 
 Find a library e.g. Boost, if you need to do serious text handling because Unicode
 is super complicated
 
+---
+template: titleslide
+# Conditionals
+
+---
+# If 
+
+Use if to specify weather a block of code should be executed based on a condition.
+
+```C++
+if (condition) {
+  //block of code
+}
+```
+
+Conditions include:
+
+- Equal to `a == b`
+- Not equal to `a != b`
+- Less than `a < b`
+- Greater than `a > b`
+
+---
+# Combining conditions
+
+You can combine conditions together to make more complex logic:
+
+- and
+
+```C++
+if (condition A && condition B) {
+  //block of code
+}
+```
+
+- or
+
+```C++
+if (condition A || condition B) {
+  //block of code
+}
+```
+
+---
+# if and else
+
+The `else` statement allows you to specify what happens if the condition is false:
+
+```C++
+if (condition) {
+  // block of code executes when condition true
+}
+else {
+  // block of code executes when condition false
+}
+```
+
+---
+# If we want more than else
+
+More complex control flow can be generated with else if:
+
+```C++
+if (condition 1) {
+  // block of code executes when condition 1 is true
+}
+else if (condition 2) {
+  // block of code executes when condition 2 is true
+}
+else if (condition 3) {
+  // block of code executes when condition 3 is true
+}
+else {
+  // block of code executes when conditions are false
+}
+```
+
+---
+# Shorthand if
+
+In some cases you might want to be more compact
+
+```C++
+variable = (condition) ? expression if True : expression if False;
+```
+
+---
+# Switch statement
+
+```C++
+switch(expression)
+  case a:
+    // code block if expression = value a
+    break;
+  case b:
+    // code block if expression = value b
+    break;
+    .
+    .
+    .
+  default:
+    // default code block if no cases matched
+```    
 ---
 template: titleslide
 # Functions
@@ -445,7 +548,7 @@ A function encapsulates a piece of code between braces (curly
 brackets, `{}`) and gives it a name so you can use it later.
 
 ```C++
-void say_hello(void) {
+void say_hello() {
   std::cout << "Hello, world!" << std::endl;
 }
 
@@ -456,14 +559,15 @@ int main(int argc, char* argv[]) {
 ```
 ???
 
-You declare function by first giving the return type (`void`)
+You declare function by first giving the return type (`void`). This marks that
+the function doesn't return a value.
 
 Then the name (`say_hello`)
 
 Then the list of zero or more parameters. If the parameter list is zero,
-then you can use empty brackets but just as we would use 'void' to mark that
-a function doesn't return a value, we can use 'void' within the brackets to
-indicate that the function doesn't take parameters.
+then you can use empty brackets. We can use 'void' within the brackets to
+indicate that the function doesn't take parameters, however this is depricated
+(but will compile for backwards compatability).
 
 ---
 # Functions
@@ -481,7 +585,7 @@ int sum(int a, int b) {
 }
 ```
 
-Since C++11, we can alse use a _trailing return type_ (aka "east end functions"):
+Since C++11, we can also use a _trailing return type_ (aka "east end functions"):
 ```C++
 auto sum(int a, int b) -> int {
   return a + b;
@@ -501,8 +605,8 @@ In this case, by us telling it later
 To use a function, or "call" it, you give its name and then provide
 the arguments in parentheses
 
-```
-int main (void) {
+```C++
+int main () {
   int x = 42;
   std::cout << "Total = " << sum(x, 100) << std::endl;
   return 0;
@@ -511,7 +615,7 @@ int main (void) {
 
 The parameters to the function must match the declaration.
 
-The `return 0` statement in the `main(void)` function is optional but you
+The `return 0` statement in the `main()` function is optional but you
 have to have a `return` statement in all other functions that return a
 value.
 
@@ -524,6 +628,7 @@ name** but **different arguments**.
 int sum(int a, int b) {
   return a + b;
 }
+
 double sum(double a, double b) {
   return a + b;
 }
@@ -557,41 +662,6 @@ std::cout << sum(name, file) << std::endl;
 ```
 
 ---
-# Operators are functions
-
-C++ operators, for the non-fundamental types, are just functions with odd
-names, e.g.:
-```C++
-std::string operator+(const std::string& a, const std::string& b);
-```
-
-You can then use the natural syntax when manipulating these in other
-code:
-
-```C++
-std::string user_name = "alice";
-auto data_file = user_name + ".csv";
-```
-
-We'll come back to this!
-
-???
-
-Here, 'data_file' is given the type 'std::string' by the compiler using
-"type inference"
-
-In general we'd recommend using auto quite a lot "Almost always auto"
-
-Why?
-
-Can't have an uninitialized variable
-
-
-Add types - on RHS as constructors - when you need to ensure the type
-of something (is known to the reader).
-
-
----
 # Let's write some code
 
 ```C++
@@ -609,11 +679,17 @@ int main(int argc, char* argv[]) {
   std::cin >> name;
 
   // Have the program greet the user by name
-  say_hello(name);
+  say_hello();
 
   return 0;
 }
 ```
+
+**Exercise:**
+
+Change `say_hello` to accept the name it reads from the
+terminal, create a new message saying "Hello, $NAME!" and
+print it to standard output.
 
 ???
 
@@ -622,3 +698,7 @@ read from the terminal, create a new message saying "Hello, $NAME!"
 and print it to standard output.
 
 I've shown here how to read a string from standard input.
+
+If completing quickly try adding conditional responses based on the input name.
+
+Finally can you write a simple question and answer workflow where the program uses the answer from the user to ask subsequent questions?

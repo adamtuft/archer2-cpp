@@ -1,7 +1,7 @@
 template: titleslide
 # Classes
-## James Richings, EPCC
-## j.richings@epcc.ed.ac.uk
+## Nathan Mannall, EPCC
+## n.mannall@epcc.ed.ac.uk
 
 
 ---
@@ -17,7 +17,7 @@ struct Complex {
 };
 ```
 
-Let's show this on Compiler Explorer: https://godbolt.org/z/j8Kf31T89
+Let's show this on Compiler Explorer: https://godbolt.org/z/d3MfGhPz5
 
 This style of type is often called a "plain old data" (POD) type or a
 "trivial" type.
@@ -38,7 +38,7 @@ Creating trivial types - give the class name then list the values to be assigned
 members, _in order_, inside braces:
 
 ```C++
-Complex mk_imaginary_unit(void) {
+Complex mk_imaginary_unit() {
   return Complex{0, 1};
 }
 ```
@@ -46,7 +46,7 @@ This is called aggregate initialisation.
 
 Alternatively:
 ```C++
-Complex mk_imaginary_unit(void) {
+Complex mk_imaginary_unit() {
   Complex sqrt_m1; // Values are uninitialised
   sqrt_m1.re = 0;
   sqrt_m1.im = 1;
@@ -60,7 +60,7 @@ Complex mk_imaginary_unit(void) {
 Using trivial types:
 
 ```C++
-void test(void) {
+void test() {
   Complex z = mk_imaginary_unit();
   assert(z.re == 0);
   assert(z.im == 1);
@@ -96,7 +96,7 @@ Now when you create an object it will be initialised to a known state
 for you:
 
 ```C++
-void test(void) {
+void test() {
   Complex z;
   assert(z.re == 0);
   assert(z.im == 0);
@@ -128,7 +128,7 @@ struct Complex {
   double im = 0.0;
 };
 
-Complex mk_imaginary_unit(void) {
+Complex mk_imaginary_unit() {
   return Complex{0, 1};
 }
 ```
@@ -185,20 +185,24 @@ the compiler must not create one unless asked to...
 Let's define the ones we declared just now:
 
 ```C++
-Complex::Complex(double real) : re(real) {
+Complex::Complex(double real) : re{real} {
 }
 
-Complex::Complex(double real, double imag) : re(real), im(imag) {
+Complex::Complex(double real, double imag) : re{real}, im{imag} {
 }
 ```
 
 ???
 
-Point out the member initialiser syntax after the colon
+Point out the member initialiser syntax after the colon. Can use parenthesis
+rather than curly brackets.
 
 Assert that this is where you want to do as much initialisation as you
 possibly can.
 
+The members in a member initialiser list are always initialised in the order in
+which they are defined inside the class (not in the order they are defined in the
+member initializer list).
 
 ---
 # Creating complexes
@@ -227,12 +231,10 @@ C++
 > associated.
 
 In C++ these attached bits of code are known as member functions -
-other languages might call them methods
-
-For example:
+other languages might call them methods. For example:
 
 ```C++
-int main(void) {
+int main() {
   std::string name;
   std::cin >> name;
   std::cout << "Hello, " << name << ". "
@@ -255,7 +257,7 @@ Typically these are *declared* in the class definition...
 // complex.hpp
 struct Complex {
   // Constructors as before
-  double magnitude(void) const;
+  double magnitude() const;
 
   double re = 0.0;
   double im = 0.0;
@@ -273,7 +275,7 @@ If anyone asks, discussion of const is coming up!
 
 ```C++
 // complex.cpp
-double Complex::magnitude(void) const {
+double Complex::magnitude() const {
   return std::sqrt(re*re + im*im);
 }
 ```
@@ -295,7 +297,225 @@ instance for us, known as the 'this' pointer. See https://www.learncpp.com/cpp-t
 for more info
 
 ---
-# More on operator overloading
+# Classes and structs
+
+You define a class using either the `struct` or `class` keywords -
+technically the difference is only the default _accessibility_ of
+members.
+
+Members can be:
+
+- `public`: usable from any piece of code - i.e. the public interface
+  of the class - default for `struct`
+
+- `private`: only usable from with a the context of the class -
+  i.e. an implementation detail of the class that should be of no
+  interest to code that uses it - default for `class`
+
+Restricting access to implementation details is part of encapsulation:
+another common aspect of OOP
+
+
+???
+
+Context of a class means from inside a member function or from
+elsewhere in the class scope
+
+
+---
+# Access Control
+
+```C++
+class Greeter {
+  std::string greetee;
+  void say_hello() const {
+    std::cout << "Hello, " << greetee << std::endl;
+  }
+};
+
+void test(Greeter const& g) {
+  g.say_hello();
+}
+```
+???
+
+Compiler will say something like
+`error: 'say_hello' is a private member of 'Greeter'`
+
+---
+# Access Control
+
+```C++
+class Greeter {
+  std::string greetee;
+public:
+  void say_hello() const {
+    std::cout << "Hello, " << greetee << std::endl;
+  }
+};
+
+void test(Greeter const & g) {
+  g.say_hello();
+}
+```
+???
+
+To fix this need to add the `public` access specifier
+
+Why is encapsulation worth bothering with? Enforces modularity and can
+(sometimes) swap out parts of the implementation for e.g. performance
+without have to re-write the client code
+
+A class can declare another function (or class) its `friend` which
+allows only that bit of code to access its private member variables.
+
+This is a controlled, partial relaxation of encapsulation that often
+makes the whole system more isolated.
+
+---
+template: titleslide
+# C++ compilation
+
+---
+# Declarations vs Definitions
+
+C++ distinguishes between *declaration* and *definition*.
+
+A **declaration** tells the compiler that a name exists, what kind of
+entity it refers to and (if it is a function or variable) its
+type. For most uses this is all the compiler needs. Declarations can
+be repeated, as long as they match *exactly*.
+
+A **definition** tells the compiler everything it needs to create
+something in its entirety. A definition is also a declaration. The
+one-definition rule says that definitions must not be repeated (with
+an exception).
+
+???
+
+The exceptions being templates and `inline` functions if anyone asks
+
+---
+# Where to put these
+
+- Conventionally, one puts declarations of functions, definitions of
+  classes, and global constants in **header** files.
+
+	- Common suffixes are: `.hpp`, `.h`, `.H`
+
+- Definitions of most functions should be in **implementation** files
+
+	- Common suffixes are `.cpp`, `.cxx`, `.cc`, `.C`
+
+- Headers can be be `#include` into other files that need to use the
+  types and function declared there.
+
+???
+
+Suffixes mostly meaningless to the compiler but don't surprise people!
+
+Prefer earlier in the list i.e. .hpp and .cpp to differentiate between C++
+and C code
+
+---
+# Where to put these
+
+E.g. Complex.hpp:
+
+```C++
+#ifndef COMPLEX_HPP
+#define COMPLEX_HPP
+
+struct Complex {
+  Complex() = default;
+  Complex(double real, double imag);
+  double real()  // etc...
+private:
+  double re;
+  double im;
+};
+
+#endif
+```
+
+Complex.cpp
+
+```C++
+#include "complex.hpp"
+
+Complex::Complex(double real, double image) : re(real), im(imag) {}
+
+double Complex::real() {
+  return re
+}
+```
+???
+
+Draw attention to the include guard idiom - include the file only once
+
+---
+# Exercise
+
+In your clone of this repository, find the `2.1-class-types` exercise and list the files
+
+```bash
+$ cd archer2-cpp/exercises/2.1-class-types
+$ ls
+Makefile  README.md  complex.cpp  complex.hpp  test.cpp
+```
+
+The files `complex.hpp` and `complex.cpp` contain the beginings of a complex number class. Follow the instructions in the comments to complete the missing declarations in `complex.hpp` and then add the required out of line definitions in `complex.cpp`.
+
+To test your implementation, `test.cpp` holds some basic unit tests created using the Catch2 unit testing library.
+
+You can compile and run with:
+
+```bash
+$ make && ./test
+g++ --std=c++14 -I../include -c -o complex.o complex.cpp
+g++ complex.o test.o -o test
+===============================================================================
+All tests passed (36 assertions in 5 test cases)
+```
+
+---
+template: titleslide
+# Operators
+
+---
+# Operators are functions
+
+C++ operators, for the non-fundamental types, are just functions with odd
+names, e.g.:
+```C++
+std::string operator+(const std::string& a, const std::string& b);
+```
+
+You can then use the natural syntax when manipulating these in other
+code:
+
+```C++
+std::string user_name = "alice";
+auto data_file = user_name + ".csv";
+```
+
+???
+
+Here, 'data_file' is given the type 'std::string' by the compiler using
+"type inference"
+
+In general we'd recommend using auto quite a lot "Almost always auto"
+
+Why?
+
+Can't have an uninitialized variable
+
+
+Add types - on RHS as constructors - when you need to ensure the type
+of something (is known to the reader).
+
+---
+# Operator overloading
 
 Complex numbers have the usual arithmetic operations: `\(+-\times\div\)`
 
@@ -331,7 +551,7 @@ internally.
 If anyone asks, references and `const` coming up
 
 ---
-# More on operator overloading
+# Operator overloading
 
 Complex numbers have the usual arithmetic operations
 (`\(+-\times\div\)`) and comparisons.
@@ -357,82 +577,6 @@ in the last line
 
 Go look up the complete list on CPP Reference!
 
----
-# Classes and structs
-
-You define a class using either the `struct` or `class` keywords -
-technically the difference is only the default _accessibility_ of
-members.
-
-Members can be:
-
-- `public`: usable from any piece of code - i.e. the public interface
-  of the class - default for `struct`
-
-- `private`: only usable from with a the context of the class -
-  i.e. an implementation detail of the class that should be of no
-  interest to code that uses it - default for `class`
-
-Restricting access to implementation details is part of encapsulation:
-another common aspect of OOP
-
-
-???
-
-Context of a class means from inside a member function or from
-elsewhere in the class scope
-
-
----
-# Access Control
-
-```C++
-class Greeter {
-  std::string greetee;
-  void say_hello(void) const {
-    std::cout << "Hello, " << greetee << std::endl;
-  }
-};
-
-void test(Greeter const& g) {
-  g.say_hello();
-}
-```
-???
-
-Compiler will say something like
-`error: 'say_hello' is a private member of 'Greeter'`
-
----
-# Access Control
-
-```C++
-class Greeter {
-  std::string greetee;
-public:
-  void say_hello(void) const {
-    std::cout << "Hello, " << greetee << std::endl;
-  }
-};
-
-void test(Greeter const & g) {
-  g.say_hello();
-}
-```
-???
-
-To fix this need to add the `public` access specifier
-
-Why is encapsulation worth bothering with? Enforces modularity and can
-(sometimes) swap out parts of the implementation for e.g. performance
-without have to re-write the client code
-
-A class can declare another function (or class) its `friend` which
-allows only that bit of code to access its private member variables.
-
-This is a controlled, partial relaxation of encapsulation that often
-makes the whole system more isolated.
-
 
 ---
 template: titleslide
@@ -448,7 +592,7 @@ Variables can be qualified with the `const` keyword
 - compiler will give errors if you try 
 
 ```C++
-int main(void) {
+int main() {
   int const i = 42;
   std::cout << i << std::endl;
   // prints 42
@@ -508,7 +652,7 @@ If they do not need to change an instance, then they should be marked
 
 ```C++
 struct Complex {
-  double magnitude(void) const;
+  double magnitude() const;
 };
 ```
 
@@ -517,7 +661,9 @@ struct Complex {
 `this` pointer, if anyone asks, but we don't like pointers
 
 
-Member variables can be marked `const`, but don't do it
+Member variables can be marked `const`, but don't do it:
+https://www.sandordargo.com/blog/2020/11/11/when-use-const-2-member-variables
+
 
 ---
 # East-const vs West-const
@@ -557,7 +703,7 @@ template: titleslide
 ---
 # Copying
 
-By default, if assign a variable a new value, C++ will copy it
+By default, if you assign a variable a new value, C++ will copy it
 ```C++
 double copy = original;
 ```
@@ -597,7 +743,7 @@ void ScaleVector(double scale, std::vector<double>& x) {
   // Multiply every element of x by scale
 }
 
-void test(void) {
+void test() {
   std::vector<double> data = ReadLargeFile();
   ScaleVector(-1.0, data);
 }
@@ -650,12 +796,12 @@ class AtomList {
   std::vector<Vec3> velocity;
   std::vector<double> charge;
 public:
-  std::vector<double> const& GetCharge(void) const {
+  std::vector<double> const& GetCharge() const {
     return charge;
   }
 };
 
-void analyse_md_data(void) {
+void analyse_md_data() {
   AtomList const atoms = ReadFromFile();
   std::vector<double> const& charges = atoms.GetCharge();
   std::cout << "Average charge = "
@@ -705,86 +851,14 @@ Refer back to the last slide codes and ask
   mutable reference then it would be a mutable ref while `auto const&`
   would have stayed constant)
 
-
----
-template: titleslide
-# C++ compilation
-
----
-# Declarations vs Definitions
-
-C++ distinguishes between *declaration* and *definition*.
-
-A **declaration** tells the compiler that a name exists, what kind of
-entity it refers to and (if it is a function or variable) its
-type. For most uses this is all the compiler needs. Declarations can
-be repeated, as long as they match *exactly*.
-
-A **definition** tells the compiler everything it needs to create
-something in its entirety. A definition is also a declaration. The
-one-definition rule says that definitions must not be repeated (with
-an exception).
-
-???
-
-The exceptions being templates and `inline` functions if anyone asks
-
----
-# Where to put these
-
-- Conventionally, one puts declarations of functions, definitions of
-  classes, and global constants in **header** files.
-
-	- Common suffixes are: `.hpp`, `.h`, `.H`
-
-- Definitions of most functions should be in **implementation** files
-
-	- Common suffixes are `.cpp`, `.cxx`, `.cc`, `.C`
-
-- Headers can be be `#include` into other files that need to use the
-  types and function declared there.
-
-???
-
-Suffixes mostly meaningless to the compiler but don't surprise people!
-
-Prefer earlier in the list i.e. .hpp and .cpp to differentiate between C++
-and C code
-
----
-# Where to put these
-
-E.g. Complex.hpp:
-
-```C++
-#ifndef COMPLEX_HPP
-#define COMPLEX_HPP
-
-struct Complex {
-  Complex() = default;
-  // etc...
-private:
-  double re;
-  double im;
-};
-
-Complex operator+(Complex const& a, Complex const& b);
-// Etc...
-
-#endif
-```
-???
-
-Draw attention to the include guard idiom - include the file only once
-
 ---
 # Exercise
 
-In your clone of this repository, find the `complex` exercise and list
+In your clone of this repository, find the `2.2-complex` exercise and list
 the files
 
 ```
-$ cd archer2-cpp/exercises/complex
+$ cd archer2-cpp/exercises/2.2-complex
 $ ls
 Makefile	complex.cpp	complex.hpp	test.cpp
 ```
